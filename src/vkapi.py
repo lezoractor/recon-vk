@@ -2,9 +2,10 @@
 # P.S. Я пишу на Python 3.x
 # 
 # @todo:
-# 	- обрабатывать списки более ассинхронно
-# 	- использвать execute
-# 	- обрабатывать ошибки
+#   - учитывать интервал в повторных запросах
+# 	- обрабатывать списки более ассинхронно (код станет сложнее)
+# 	- использвать execute (код загрязнится)
+# 	- отсеять лишние запросы для проверки доступа (код сильно загрязнится)
 
 import urllib.parse.urlencode
 import time.clock
@@ -92,11 +93,21 @@ class API:
 	# Внимание! Не контролирует допустимые задержки между запросами, 
 	#  то есть есть возможность привысить лимит в 3 запроса за секунду.
 	#
+	# @param {string} method - метод (пример: "wall.get")
+	# @param {dict} options - опции метода (смотрите документацию API Вконтакте)
+	# @param {string} token - токен (не обязательный)
+	# @param {iter} tokens - список токенов (используются при явной необходимости)
+	# 
 	@staticmethod
-	def force (method, options, token) :
+	def force (method, options, token, tokens) :
 
 		if token:
 			options.access_token = token
+
+		if tokens:
+			tokens = deque(tokens)
+		else:
+			tokens = deque()
 
 		# Вроде это текущая версия
 		options.v = '5.56'
@@ -105,19 +116,19 @@ class API:
 
 			options.count = API.Limits[method]
 			options.offset = 0
-			response = API.raw(method, options)
+			response = API.raw(method, options, tokens=tokens)
 
 			if not response:
 				return []
 
 			while len(response.items) < response.count:
 				options.offset += options.count
-				response.items += API.raw(method, options).items
+				response.items += API.raw(method, options, token=tokens).items
 
 			return response.items
 		
 		else:
-			return API.raw(method, options)
+			return API.raw(method, options, tokens=tokens)
 			
 
 	#
@@ -128,7 +139,7 @@ class API:
 	#  то есть есть возможность привысить лимит в 3 запроса за секунду.
 	#
 	@staticmethod
-	def raw (method, options, timeout=500) :
+	def raw (method, options, timeout=500, tokens) :
 		connection = http.client.HTTPSConnection("api.vk.com", 443, timeout)
 		connection.request("GET", "/method/" + method + '?' + urllib.parse.urlencode(options));
 		try:
@@ -140,14 +151,56 @@ class API:
 			if not data.error:
 				return data.response
 			else:
-				API.parseError(data.error, method, options)
+				API.parseError(data.error, method, options, tokens)
 
 	#
-	# @todo
+	# Парсит ошибку и выполняет соответствующие действия.
 	# 
 	@staticmethod
-	def parseError(data.error, method, options) :
-		pass
+	def parseError(error, method, options, tokens) :
+
+		code = error.error_code
+
+		# Временная ошибка
+		if code in (1, 10, 113) :
+			return API.raw(method, options)
+
+		# Нефатальная неисправимая ошибка
+		if code in (18, 19, 300) :
+			return False
+		
+		# Фатальная ошибка (если в ней виноваты мы)
+		if code in (3, 4, 5, 8, 11, 16, 20, 21, 23, 24, 100, 101, 150, 500, 600, 603) :
+			raise Exception(error.error_desc)
+
+		# Слишком много запросов в секунду
+		if code in (6) :  
+			sleep(1)
+			return API.raw(method, options) 
+		
+		# Часто повторяется действие
+		if code in (9) : 
+			sleep(60)
+			return API.raw(method, options)
+
+		# Капча или валидация 
+		if code in (14, 17) : 
+			raise Exception(error.error_desc, '(do it yourself)') 
+
+		# Нет доступа
+		if code in (7, 15, 200, 201, 204, 212) : 
+			if options.access_token:
+				return False
+			else:
+				tokens.rotate(1)
+				options.access_token = tokens[0]
+				if not options.access_token:
+					return False
+				return API.raw(method, options)
+
+		# Что-то непонятное
+		raise Exception(error.error_desc, code, '(unknown error)')
+
 
 
 	#
@@ -206,7 +259,7 @@ class API:
 				
 			elif len(self.queueAuthorized):
 				task = self.queueUnauthorized.popleft()
-				API.force(task.method, task.options, False)
+				API.force(task.method, task.options, False, self.tokens)
 			else
 				pass
 	
