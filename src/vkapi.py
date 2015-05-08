@@ -142,6 +142,13 @@ class API:
 			else:
 				API.parseError(data.error, method, options)
 
+	#
+	# @todo
+	# 
+	@staticmethod
+	def parseError(data.error, method, options) :
+		pass
+
 
 	#
 	# Ставит запрос в очередь.
