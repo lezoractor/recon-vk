@@ -1,3 +1,4 @@
+# 
 # Код не будет работать, не все методы реализованы..
 # P.S. Я пишу на Python 3.x
 # 
@@ -45,7 +46,6 @@ class API:
 		'likes.getList'
 	)
 
-
 	#
 	# Максимальное допустимое количество возвращаемых элементов
 	#  для методов, возвращающих списки
@@ -85,7 +85,6 @@ class API:
 			thread.daemon = True
 			thread.start()
 
-
 	#
 	# Можно использовать для синхронных запросов.
 	# Это статичный метод и может быть вызван без инициализации класса.
@@ -109,8 +108,16 @@ class API:
 		else:
 			tokens = deque()
 
-		# Вроде это текущая версия
-		options.v = '5.56'
+		# Ставим актуальную на сей момент версию API, если 
+		#  не указана иная. Если этого не сделать, то 
+		#  вконтакт будет считать, что мы используем 
+		#  версию 3.0, но она сильно устарела. По крайней
+		#  мере там списки возвращаются в виде
+		#   [длина, элемент1, элемент2, ...]
+		#  а не
+		#  	{count: длина, items: [элемент1, элемент2]}
+		if not options.v:
+			options.v = '5.8'
 
 		if method in API.ListableMethods:
 
@@ -130,7 +137,6 @@ class API:
 		else:
 			return API.raw(method, options, tokens=tokens)
 			
-
 	#
 	# Отправляет запросы без предварительной обработки, за исключением
 	#  обработки ошибок API. 
@@ -201,8 +207,6 @@ class API:
 		# Что-то непонятное
 		raise Exception(error.error_desc, code, '(unknown error)')
 
-
-
 	#
 	# Ставит запрос в очередь.
 	# Ассинхронный.
@@ -228,7 +232,6 @@ class API:
 		else:
 			self.queueUnauthorized.append(task)
 
-
 	#
 	# Возвращает токен.
 	# Каждый раз смещает список токенов на 1,
@@ -237,7 +240,6 @@ class API:
 	def getToken (self) :
 		self.tokens.rotate(1)
 		return self.tokens[0]
-
 
 	#
 	# Это выполняется в отдельном потоке.
@@ -262,9 +264,3 @@ class API:
 				API.force(task.method, task.options, False, self.tokens)
 			else
 				pass
-	
-
-	
-
-
-
