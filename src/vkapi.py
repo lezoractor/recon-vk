@@ -257,10 +257,10 @@ class API:
 				self.lasttime = time.clock()
 
 				# Выполняем запрос
-				API.force(task.method, task.options, self.getToken())
+				task.callback(API.force(task.method, task.options, self.getToken()))
 				
 			elif len(self.queueAuthorized):
 				task = self.queueUnauthorized.popleft()
-				API.force(task.method, task.options, False, self.tokens)
+				task.callback(API.force(task.method, task.options, False, self.tokens))
 			else
 				pass
