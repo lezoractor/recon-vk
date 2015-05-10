@@ -1,3 +1,3 @@
-from vkapi import API
+import vkapi
 
 api = API(('token'))
