@@ -1,5 +1,5 @@
 class VKObject:
-	"""VK Object (like, comment, post) class"""
+	"""VK Object (comment itself, post, photo, etc) class"""
 	
 	def __init__(self, raw) :
 		
