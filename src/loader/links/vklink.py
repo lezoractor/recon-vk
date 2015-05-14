@@ -3,7 +3,7 @@ from loader.links import vkobject
 class VKLink:
 	"""Link type (like, repost, commenting fact, etc)"""
 
-	def __init__(self, from, to, obj) :
+	def __init__(self, from, to) :
 
 		obj = VKObject(obj)
 
@@ -13,7 +13,7 @@ class VKLink:
 			"object": obj.id
 		}]
 
-		self.objects = obj.getList()
+		self.objects = []
 	
-
-	
+	def attachObject (self, obj) :
+		self.objects.append(obj)
