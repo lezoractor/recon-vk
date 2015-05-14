@@ -5,8 +5,6 @@ class VKLink:
 
 	def __init__(self, from, to) :
 
-		obj = VKObject(obj)
-
 		self.links = [{
 			"from": from,
 			"to": to,
