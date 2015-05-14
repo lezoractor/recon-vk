@@ -1,5 +1,3 @@
-from loader.links import vkobject
-
 class VKLink:
 	"""Link type (like, repost, commenting fact, etc)"""
 
