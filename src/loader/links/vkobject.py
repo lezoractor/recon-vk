@@ -1,14 +1,24 @@
-class VKObject:
-	"""VK Object (comment itself, post, photo, etc) class"""
+#
+# Класс объекта социальной сети.
+# Параметры, определяющие объект
+# 	- унифицированный идентификатор объекта соц.графа
+# 	- тип объекта
+# 	- "сырые" данные объекта - объект
+# 		Если это пользователь, то это
+# 			имя, фамилия, аватарка, идентификатор, короткий адрес,
+# 			* пол и вообще все, что поддается обобщению, херачится в граф
+# 		Если это медиаобъект,
+# 			идентификатор, владелец, отправитель, текст, прикрепления, содержимое
+# 		
+# 		
+class VKObject :
+	"""VK Object class"""
 	
-	def __init__(self, typed, owner, raw) :
-		self.uoid = typed + str(raw.id) + '@' + str(raw.owner)
-		self.id = raw.id
-		self.owner_id = owner
-		self.from_id = raw.from_id
-		self.text = raw.text or None
-		self.attachments = raw.attachments or []
-		self.objects = []
+	def __init__(self, otype, raw, owner) :
+		if owner :
+			raw.owner_id = owner
 
-	def attachObject(self, obj) :
-		self.objects.append(obj)
+		self.data = raw
+
+	def save () :
+		# save to db and get uuid

@@ -8,6 +8,8 @@ from collections import deque
 # Смотрите loader.js в старой проге
 # 
 def parse (user) :
+	
+
 	links = deque()
 
 	#
