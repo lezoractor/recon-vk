@@ -73,7 +73,7 @@ class API:
 		self.queueAuthorized = deque()
 		self.queueUnauthorized = deque()
 		self.lasttime = time.clock()
-		self.interval = interval
+		self.interval = interval / len(tokens)
 
 		#
 		# Потоки в вечном цикле проверяют наличие новых
@@ -240,6 +240,22 @@ class API:
 	def getToken (self) :
 		self.tokens.rotate(1)
 		return self.tokens[0]
+
+
+	#
+	# Генерирует код для метода execute
+	# @param {list} requests - список запросов
+	#  формат - [{method: метод, data: {параметры}}]
+	# @see vk.com/dev/execute
+	#
+	@staticmethod
+	def generateExecuteScript (requests) :
+		code = 'return ['
+
+		for request in requests :
+			code += 'API.' + request.method + '(' + json.dumps(request.data) + '),'
+
+		return code[:-1] + '];'
 
 	#
 	# Это выполняется в отдельном потоке.

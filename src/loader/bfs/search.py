@@ -38,6 +38,39 @@ def getLinksFromUser (uid, callback) :
 
 		callback(people, groups)
 
+	def onload (user) :
+		parse(user, onparse)
+
+	load(uid, onload)
+
+
+#
+# Загрузка людей, имеющих отношение к группе
+# Группы, у которых *закрыта* для комментирования
+#  стена и больше 10к подписчиков просто не 
+#  учитываются и не загружаются. 
+# Группы, у которых *открыта* для комментирования
+#  стена и больше 10к подписчиков - обрабатываются
+#  только последние 10к постов
+# Группы с менее чем 100 участниками означают
+#  то, что участники связаны между собой прямо
+#
+# Возвращает списока самых активных (не более limit человек)
+#
+def getLinksFromGroup (uid, limit, callback) :
+	def onparse (links) :
+	
+		# people = set([link in links if link.to != uid] + [link in links if link['from'] != uid]])
+
+		people = {}
+
+		for link in links :
+			addr = if link.to != uid : link.to else : link['from']
+
+			if not people[addr] : 
+				people[addr] +=
+
+		callback(people, groups)
 
 	def onload (user) :
 		parse(user, onparse)
@@ -46,6 +79,12 @@ def getLinksFromUser (uid, callback) :
 
 def search (start, config) :
 	
+	#
+	# Загрузка активных участников групп
+	#
+	def onGroupLoad (people) :
+		pass
+
 	#
 	# Загрузка последних пользователей, которые не имеют связи с центральным,
 	#  они нужны для определения того, что из себя представляет та или иная 
