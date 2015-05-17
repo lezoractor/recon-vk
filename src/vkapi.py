@@ -65,7 +65,7 @@ class API:
 	#
 	# @param {list} tokens - список токенов
 	# @param {int} threads - количество потоков
-	# @param {double} interval - интервал для запросов с токеном 
+	# @param {double} interval - интервал для запросов с токеном
 	#
 	def __init__(self, tokens, threads=20, interval=0.5) :
 
@@ -90,7 +90,7 @@ class API:
 	# Это статичный метод и может быть вызван без инициализации класса.
 	# Возвращает данные в обработанном виде (@see API.request)
 	# Внимание! Не контролирует допустимые задержки между запросами, 
-	#  то есть есть возможность привысить лимит в 3 запроса за секунду.
+	#  то есть есть возможность случайно привысить лимит в 3 запроса за секунду.
 	#
 	# @param {string} method - метод (пример: "wall.get")
 	# @param {dict} options - опции метода (смотрите документацию API Вконтакте)
@@ -147,7 +147,7 @@ class API:
 	@staticmethod
 	def raw (method, options, timeout=500, tokens) :
 		connection = http.client.HTTPSConnection("api.vk.com", 443, timeout)
-		connection.request("GET", "/method/" + method + '?' + urllib.parse.urlencode(options));
+		connection.request("GET", ''.join(("/method/", method, '?', urllib.parse.urlencode(options)));
 		try:
 			data = json.loads(response.read())
 		except ValueError, e:
@@ -253,7 +253,7 @@ class API:
 		code = 'return ['
 
 		for request in requests :
-			code += 'API.' + request.method + '(' + json.dumps(request.data) + '),'
+			code += ''.join(('API.', request.method, '(', json.dumps(request.data), '),'))
 
 		return code[:-1] + '];'
 

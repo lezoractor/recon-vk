@@ -7,6 +7,7 @@
 #
 
 from loader.data import load
+from loader.data import loadGroup
 from loader.links import *
 from progress import *
 
@@ -55,27 +56,21 @@ def getLinksFromUser (uid, callback) :
 # Группы с менее чем 100 участниками означают
 #  то, что участники связаны между собой прямо
 #
-# Возвращает списока самых активных (не более limit человек)
-#
-def getLinksFromGroup (uid, limit, callback) :
+# Возвращает список самых активных
+#  @todo: сейчас он возвращает тупо список всех.
+# 
+def getLinksFromGroup (uid, callback) :
 	def onparse (links) :
 	
-		# people = set([link in links if link.to != uid] + [link in links if link['from'] != uid]])
-
-		people = {}
-
-		for link in links :
-			addr = if link.to != uid : link.to else : link['from']
-
-			if not people[addr] : 
-				people[addr] +=
+		# Просто список связанных людей будет так.
+		people = set([link in links if link.to != uid] + [link in links if link['from'] != uid]])
 
 		callback(people, groups)
 
 	def onload (user) :
 		parse(user, onparse)
 
-	load(uid, onload)
+	loadGroup(uid, onload)
 
 def search (start, config) :
 	
