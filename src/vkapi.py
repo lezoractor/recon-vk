@@ -66,14 +66,16 @@ class API:
 	# @param {list} tokens - список токенов
 	# @param {int} threads - количество потоков
 	# @param {double} interval - интервал для запросов с токеном
+	# @param {int} executePerRequest - сколько запросов помещать в один. 0 Для простого режима
 	#
-	def __init__(self, tokens, threads=20, interval=0.5) :
+	def __init__(self, tokens, threads=20, interval=0.5, executePerRequest=10) :
 
 		self.tokens = deque(tokens)
 		self.queueAuthorized = deque()
 		self.queueUnauthorized = deque()
 		self.lasttime = time.clock()
 		self.interval = interval / len(tokens)
+		self.executePerRequest = executePerRequest
 
 		#
 		# Потоки в вечном цикле проверяют наличие новых
@@ -263,20 +265,71 @@ class API:
 	#  получается задание и затем выполняется.
 	#
 	def _worker(self) :
-		while True:
-			if len(self.queueAuthorized) and time.clock() - self.lasttime > self.interval:
-				
-				# Берем задачу из очереди
-				task = self.queueAuthorized.popleft()
+		while True :
+			if len(self.queueAuthorized) and time.clock() - self.lasttime > self.interval :
+				if self.executePerRequest and :
+					
+					requests = []
 
-				# Время последнего запроса обновляем
-				self.lasttime = time.clock()
+					while len(requests) < self.executePerRequest and len(self.queueAuthorized):
+						requests.append(self.queueAuthorized.popleft())
+				else :
+					# Берем задачу из очереди
+					task = self.queueAuthorized.popleft()
 
-				# Выполняем запрос
-				task.callback(API.force(task.method, task.options, self.getToken()))
-				
+					# Время последнего запроса обновляем
+					self.lasttime = time.clock()
+
+					# Выполняем запрос
+					task.callback(API.force(task.method, task.options, self.getToken()))
+
 			elif len(self.queueAuthorized):
 				task = self.queueUnauthorized.popleft()
 				task.callback(API.force(task.method, task.options, False, self.tokens))
 			else
 				pass
+
+	#
+	# Это выполняется в несколько потоков в фоне
+	#
+	def _worker(self) :
+		
+		# Если включена оптимизация через execute
+		if self.executePerRequest :
+			while True :
+
+				# Выполняем запрос только если в очереди достаточно реквестов
+				if len (self.queueAuthorized >= self.executePerRequest) and time.clock() - self.lasttime > self.interval:
+
+					requests = []
+
+					while len (requests) < self.executePerRequest and len (self.queueAuthorized):
+						requests.append(self.queueAuthorized.popleft())
+
+					script = API.generateExecuteScript(requests)
+					params = {code: script}
+					data = API.force('execute', params, self.getToken())
+
+					for id, response in data :
+						requests[id].callback(response)
+					
+
+				elif len(self.queueAuthorized) :
+					task = self.queueUnauthorized.popleft()
+					task.callback(API.force(task.method, task.options, False, self.tokens))
+		else :
+			while True :
+				if len(self.queueAuthorized) and time.clock() - self.lasttime > self.interval :
+					
+					# Берем задачу из очереди
+					task = self.queueAuthorized.popleft()
+
+					# Время последнего запроса обновляем
+					self.lasttime = time.clock()
+
+					# Выполняем запрос
+					task.callback(API.force(task.method, task.options, self.getToken()))
+
+				elif len(self.queueAuthorized):
+					task = self.queueUnauthorized.popleft()
+					task.callback(API.force(task.method, task.options, False, self.tokens))
