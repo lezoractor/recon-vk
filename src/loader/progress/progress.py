@@ -6,23 +6,42 @@
 # Для отладки тож сойдет
 #
 
+tasks = []
+nodes = []
 
-#
-# Программный интерфейс получения данных о прогрессе
-#
+class task:
+	def __init__ (self, name="Unknown task", loglevel="debug", parent=rootTask) :
+		self.name = name
+		self.loglevel = loglevel
+		self.parent = parent
+		self.done = False
+		self.id = len(tasks)
+		self.childTasks = []
+		tasks.append(self)
+		
+		if (parent) :
+			parent.childTasks.append(self)
 
+	def done (self) :
+		self.done = True
+		log(name + " done.", self.id, self.loglevel)
 
-#
-# Доля выполнения всех задач
-#
-def getOverallProgress () :
-	pass
+	def getProgress (self) :
+		if self.done :
+			return 1;
 
-#
-# Прогресс определенной задачи
-#
-def getTaskProgress (id) :
-	pass 
+		summ = 0.0
+
+		for child in self.childTasks :
+			summ += child.getProgress()
+
+		if not self.childTasks :
+			return 0
+
+		return summ / len(self.childTasks)
+
+rootTask = task("Root task", "info", False)
+tasks.append(rootTask)
 
 #
 # Получение лога
@@ -32,27 +51,14 @@ def getTaskProgress (id) :
 # @param {boolean} blockUntilLog - если True, вернет значение только когда оно появится.
 #
 def getLog(timeFrom=0, logLevel="info", blockUntilLog=False) :
-	pass
+	while True :
+		for node in nodes :
+			if 
 
-
-#
-# Интерфейс записи данных о прогрессе
-#
 
 #
 # Логгировать что-то..
 #
 def log (message, id=-1, loglevel="info") :
-	pass
-
-#
-# Отчитаться о начале обработки задачи
-#
-def started (task="Unknown task", loglevel="debug", parent=0) :
-	return 0 # Номер задачи
-
-#
-# Отчитаться о завершении обработки задачи
-#
-def finished (id) :
-	pass
+	nodes.append({message: message, id: id, loglevel: loglevel})
+	# @todo Печатать, если loglevel соответствуюет таковому в конфигах

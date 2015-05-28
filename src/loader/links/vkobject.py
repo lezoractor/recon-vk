@@ -21,4 +21,4 @@ class VKObject :
 		self.data = raw
 
 	def save () :
-		# save to db and get uuid
+		# save to db and get uuid 
